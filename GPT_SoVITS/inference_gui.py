@@ -321,7 +321,7 @@ class GPTSoVITSGUI(QMainWindow):
 
         if result_list:
             last_sampling_rate, last_audio_data = result_list[-1]
-            output_wav_path = os.path.join(output_path, "output.wav") 
+            output_wav_path = os.lab_path.join(output_path, "output.wav")
             sf.write(output_wav_path, last_audio_data, last_sampling_rate)
 
             result = "Audio saved to " + output_wav_path
