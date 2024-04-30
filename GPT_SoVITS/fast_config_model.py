@@ -10,10 +10,15 @@ class ServerConfig:
 class ModelConfig:
     def __init__(self, bert_path, cnhubert_base_path, gpu_number, gpt_path, sovits_path):
         self.bert_path = bert_path
+        os.environ["bert_path"] = bert_path
         self.cnhubert_base_path = cnhubert_base_path
+        os.environ["cnhubert_base_path"] = cnhubert_base_path
         self.gpu_number = gpu_number
+        os.environ["gpu_number"] = gpu_number
         self.gpt_path = gpt_path
+        os.environ["gpt_path"] = gpt_path
         self.sovits_path = sovits_path
+        os.environ["sovits_path"] = sovits_path
 
 class EmotionClassificationConfig:
     def __init__(self, model_path, emotion_data, joblib_path, label_path, wav_path):
@@ -22,11 +27,13 @@ class EmotionClassificationConfig:
         self.emotion_data = emotion_data
         os.environ["EMOTION_DATA_FILE"] = emotion_data
         self.joblib_path = joblib_path
+        os.environ["EMOTION_JOBLIB_FILE"] = joblib_path
         self.label_path = label_path
+        os.environ["EMOTION_LABEL_FILE"] = label_path
         self.wav_path = wav_path
 
 class AppConfig:
-    def __init__(self, server, model, emotion_classification):
+    def __init__(self, server:ServerConfig, model:ModelConfig, emotion_classification:EmotionClassificationConfig):
         self.server = server
         self.model = model
         self.emotion_classification = emotion_classification

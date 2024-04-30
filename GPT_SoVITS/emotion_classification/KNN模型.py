@@ -1,7 +1,7 @@
 import json
 import os
 import joblib
-from 情感检测 import get_semantic_cls
+from .情感检测 import get_semantic_cls
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
 from sklearn.preprocessing import normalize
@@ -13,7 +13,7 @@ with open(emotion_data_file, 'r', encoding='utf-8') as f:
     data_obj = json.loads(f.read())
 # emotion模型路径
 # model_file = r"F:\Engcode\AIAssistant\dataset\nahida\emotion_similarity_model.joblib"
-model_file = os.environ.get("EMOTION_MODEL_FILE")
+model_file = os.environ.get("EMOTION_JOBLIB_FILE")
 
 nparrs = []
 knn = None

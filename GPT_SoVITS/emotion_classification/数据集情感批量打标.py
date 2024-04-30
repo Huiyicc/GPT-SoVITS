@@ -2,10 +2,10 @@ import os
 import json
 from 情感检测 import get_semantic_cls
 
-# 源目录
-path = r'F:\Engcode\AIAssistant\dataset\nahida\raw\lab'
+# 源目录,lab文件目录
+path = r''
 # 输出目录
-out_path = r'F:\Engcode\AIAssistant\dataset\nahida'
+out_path = r'output'
 
 
 
@@ -14,7 +14,6 @@ out_obj = []
 
 def test_read_all_byss():
     # 获取所有文件
-    path = r'F:\Engcode\AIAssistant\dataset\nahida\raw\lab'
     files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
     i = 0
     max = len(files)

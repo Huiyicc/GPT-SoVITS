@@ -1,46 +1,14 @@
-# import os
-# from os import listdir
-# from os.path import isfile, join
-#
-# from api_gen import request_AI
-#
-# system_prompt = '''你是一个乐于助人的助手.
-# '''
-#
-# ucontent = '''你好？
-# '''
-#
-# protmpts = {
-#     "temperature": 0.5,
-#     "frequency_penalty": 0,
-#     "presence_penalty": 0,
-#     "system_prompt": system_prompt,
-#     "injecting_input": False,
-#     "message": [
-#         {
-#             "role": "user",
-#             "content": "language tutor is you?",
-#         },
-#         {
-#             "assistants": True,
-#             "contents": [
-#             ]
-#         },
-#         {
-#             "role": "user",
-#             # "prompt": "prompts/as_ai_dict_sentence_word.prompt"
-#             "content": ucontent,
-#         }
-#     ]
-# }
+import os
 
 # resp = request_AI(protmpts, "你好?")
 from modelscope.pipelines import pipeline
 from modelscope.utils.constant import Tasks
 
+
+
 # 语义分类
-semantic_cls = pipeline(Tasks.text_classification,
-                        r'G:\models\bert\nlp_structbert_emotion-classification_chinese-large', model_revision='v1.0.0')
+semantic_cls= None
+
 
 
 def sort_labels_scores(labels, scores):
@@ -63,6 +31,11 @@ def get_semantic_cls(text):
     :param text: 文本
     :return: 情感分类结果
     '''
+    global semantic_cls
+    if semantic_cls is None:
+        EMOTION_MODEL_FILE = os.environ.get("EMOTION_MODEL_FILE")
+        semantic_cls = pipeline(Tasks.text_classification,
+                            EMOTION_MODEL_FILE, model_revision='v1.0.0')
     obj = semantic_cls(input=text)
     # 重新排序
     ls = obj['labels']
