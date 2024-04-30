@@ -14,7 +14,7 @@ out_obj = []
 
 def test_read_all_byss():
     # 获取所有文件
-    files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+    files = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f)) and f.endswith('.lab')]
     i = 0
     max = len(files)
     for file in files:

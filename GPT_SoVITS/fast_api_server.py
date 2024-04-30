@@ -23,7 +23,7 @@ class TTSConfig(BaseModel):
     text_language: str
 
 
-@app.post("/api/v1/voice")
+@app.post("/v1/voice")
 async def create_item(cfg: TTSConfig):
     # 预测情感分数
     scores, sentence = find_similar_sentences(cfg.text)
@@ -43,4 +43,4 @@ async def create_item(cfg: TTSConfig):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=18080)
+    uvicorn.run(app, host=app_config.server.host, port=app_config.server.port)
