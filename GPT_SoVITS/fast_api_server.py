@@ -134,7 +134,7 @@ async def create_item(cfg: TTSConfig):
         prompt_content = sentence[0]["content"]
         print(f"预测文件：{prompt_file}, 预测内容：{prompt_content}")
         # 生成音频
-        res = get_tts_wav(prompt_file, prompt_content, "中英混合", text_i, cfg.text_language, i18n("不切"), 5, 0.8, 1)
+        res = get_tts_wav(prompt_file, prompt_content, "中英混合", text_i, cfg.text_language, i18n("不切"), 5, 1, 1)
         sample_rate, audio_data = next(res)
         # audio_bytes_segment = BytesIO()
         # wav_write(audio_bytes_segment, sample_rate, audio_data.astype(np.int16))
@@ -143,7 +143,9 @@ async def create_item(cfg: TTSConfig):
         audio_segments.append(zero_wav)
     m_data = np.concatenate(audio_segments)
     final_audio_bytes = BytesIO()
-    wav_write(final_audio_bytes, sample_rate, m_data)
+    wav_write(final_audio_bytes, sample_rate, m_data.astype(np.int16))
+
+    final_audio_bytes.seek(0)
 
     headers = {
         "Content-Disposition": "attachment; filename=output_audio.wav",

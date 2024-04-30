@@ -38,13 +38,13 @@ else:
     joblib.dump(knn, model_file)
 
 
-def find_similar_sentences(text, K=1):
+def find_similar_sentences(text, K=5):
     # 假设有一个新的输入句子，其情绪分类输出scores向量为：
     raw_scores = get_semantic_cls(text)
     input_scores = np.array(raw_scores['scores'])
 
     # 对输入scores向量进行归一化处理
-    normalized_input_scores = normalize(input_scores.reshape(1, -1))
+    normalized_input_scores = normalize(input_scores[np.newaxis, :])
 
     # 使用KNN模型查找与输入句子最相似的K个源数据
     distances, indices = knn.kneighbors(normalized_input_scores, n_neighbors=K)
