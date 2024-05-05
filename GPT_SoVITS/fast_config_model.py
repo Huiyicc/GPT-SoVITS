@@ -8,7 +8,7 @@ class ServerConfig:
         self.port = port
 
 class ModelConfig:
-    def __init__(self, bert_path, cnhubert_base_path, gpu_number, gpt_path, sovits_path):
+    def __init__(self, bert_path, cnhubert_base_path, gpu_number, gpt_path, sovits_path, ref_wav_default, ref_wav_text, ref_wav_lang):
         self.bert_path = bert_path
         os.environ["bert_path"] = bert_path
         self.cnhubert_base_path = cnhubert_base_path
@@ -19,6 +19,10 @@ class ModelConfig:
         os.environ["gpt_path"] = gpt_path
         self.sovits_path = sovits_path
         os.environ["sovits_path"] = sovits_path
+        self.ref_wav_default = ref_wav_default
+        self.ref_wav_text = ref_wav_text
+        self.ref_wav_lang = ref_wav_lang
+
 
 class EmotionClassificationConfig:
     def __init__(self, model_path, emotion_data, joblib_path, label_path, wav_path):
@@ -49,7 +53,10 @@ model_config = ModelConfig(
     data['model']['cnhubert_base_path'],
     data['model']['gpu_number'],
     data['model']['gpt_path'],
-    data['model']['sovits_path']
+    data['model']['sovits_path'],
+    data['model']['ref_wav_default'],
+    data['model']['ref_wav_text'],
+    data['model']['ref_wav_lang'],
 )
 emotion_classification_config = EmotionClassificationConfig(
     data['emotion_classification']['model_path'],

@@ -1,6 +1,6 @@
+# 无情感预测的api
 import json
 import os
-
 import re
 import pandas as pd
 import torch
@@ -73,11 +73,9 @@ class ReCut():
         return sentence_after
 
 from starlette.responses import StreamingResponse
-
 from fast_config_model import app_config
-from emotion_classification.KNN模型 import find_similar_sentences
 
-from inference_webui import get_tts_wav, i18n, get_first, cut1, cut2, cut3, cut4, cut5,hps
+from inference_webui import get_tts_wav, i18n, get_first, cut1, cut2, cut3, cut4, cut5, hps
 from inference_webui import splits as web_splits
 from fastapi import FastAPI
 from pydantic import BaseModel
@@ -85,8 +83,7 @@ import uvicorn
 from scipy.io.wavfile import write as wav_write
 from io import BytesIO
 import numpy as np
-
-emotion_classification_path = r"GPT_SoVITS/emotion_classification/nlp_structbert_emotion-classification_chinese-large"
+import hashlib
 
 app = FastAPI()
 
@@ -97,6 +94,8 @@ class TTSConfig(BaseModel):
     text: str
     text_language: str
     split_sentence: int
+
+
 @app.post("/v1/voice")
 async def voice(cfg: TTSConfig):
     text_language = cfg.text_language
@@ -126,18 +125,13 @@ async def voice(cfg: TTSConfig):
         text_i = text_i.strip()
         if len(text_i) == 0:
             continue
-        # 预测情感分数
-        scores, sentence = find_similar_sentences(text_i)
-        # 匹配预测文件
-        prompt_file = app_config.emotion_classification.wav_path + "/" + sentence[0]["file"] + ".wav"
-        prompt_content = sentence[0]["content"]
-        print(f"预测文件：{prompt_file}, 预测内容：{prompt_content}")
         # 生成音频
-        res = get_tts_wav(prompt_file, prompt_content, "中英混合", text_i, cfg.text_language, i18n("不切"), 5, 1, 1)
+        res = get_tts_wav(app_config.model.ref_wav_default, app_config.model.ref_wav_text,
+                          app_config.model.ref_wav_lang,
+                          text, cfg.text_language, i18n("不切"), 5, 1, 1)
         sample_rate, audio_data = next(res)
-        # audio_bytes_segment = BytesIO()
-        # wav_write(audio_bytes_segment, sample_rate, audio_data.astype(np.int16))
-        # audio_bytes_segment.seek(0)  # 将指针移到开头，以便后续读取
+        if len(text_i)<5:
+            audio_segments.append(zero_wav)
         audio_segments.append(audio_data)
         audio_segments.append(zero_wav)
     m_data = np.concatenate(audio_segments)
@@ -145,9 +139,9 @@ async def voice(cfg: TTSConfig):
     wav_write(final_audio_bytes, sample_rate, m_data.astype(np.int16))
 
     final_audio_bytes.seek(0)
-
+    md5 = hashlib.md5(text.encode()).hexdigest()
     headers = {
-        "Content-Disposition": "attachment; filename=output_audio.wav",
+        "Content-Disposition": f"attachment; filename={md5}.wav",
     }
     return StreamingResponse(final_audio_bytes, media_type="audio/wav", headers=headers)
 

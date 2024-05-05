@@ -206,6 +206,12 @@ dict_language = {
     i18n("中英混合"): "zh",  # 按中英混合识别####不变
     i18n("日英混合"): "ja",  # 按日英混合识别####不变
     i18n("多语种混合"): "auto",  # 多语种启动切分识别语种
+    "all_zh": "all_zh",
+    "en": "en",
+    "all_ja": "all_ja",
+    "zh": "zh",
+    "ja": "ja",
+    "auto": "auto",
 }
 
 
@@ -329,7 +335,7 @@ def get_tts_wav(ref_wav_path, prompt_text, prompt_language, text, text_language,
         print(i18n("实际输入的参考文本:"), prompt_text)
     text = text.strip("\n")
     if (text[0] not in splits and len(get_first(text)) < 4): text = "。" + text if text_language != "en" else "." + text
-
+    if text[0] in splits: text = text[1:]
     print(i18n("实际输入的目标文本:"), text)
     zero_wav = np.zeros(
         int(hps.data.sampling_rate * 0.3),
