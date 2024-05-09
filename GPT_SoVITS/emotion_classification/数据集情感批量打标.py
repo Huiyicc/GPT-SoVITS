@@ -11,11 +11,14 @@ lab_path = r''
 # wav文件目录
 wav_path = r''
 # 输出目录
-out_path = r'F:\Engcode\AIAssistant\dataset\nahida'
+out_path = r''
 
 
 
-out_obj = []
+out_obj = {
+    "doubt": [],
+    "normal": [],
+}
 
 
 def test_read_all_byss():
@@ -26,7 +29,7 @@ def test_read_all_byss():
     for file in files:
         with open(os.path.join(lab_path, file), 'r', encoding='utf-8') as f:
             content = f.read()
-        s = get_semantic_cls(content)
+        s,pr_txt = get_semantic_cls(content)
         # 删除后缀
         file_name = file.split('.')[0]
         ldata = {
@@ -40,9 +43,12 @@ def test_read_all_byss():
             i += 1
             print(f'continue [{i / max * 100}%]{i}/{max}')
             continue
-        out_obj.append(ldata)
+        if content.find('？') != -1 or content.find('?') != -1:
+            out_obj['doubt'].append(ldata)
+        else:
+            out_obj['normal'].append(ldata)
         i += 1
-        print(f'append [{i / max * 100}%]{i}/{max}')
+        print(f'append [{i / max * 100}%]{i}/{max} | {pr_txt}')
 
 
 test_read_all_byss()

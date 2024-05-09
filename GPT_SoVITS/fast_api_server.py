@@ -9,68 +9,47 @@ import torch
 class ReCut():
     def __init__(self, text):
         self.text = text
+        self.text =self.text.replace("...","{{spend_split}}")
 
     def cut(self):
-        l = self.__connect__(self.text)
-        res = [""]
-        index = 0
-        pattern = r'[。？！；……~.?;!]'
-        for i in l:
-            for j in i:
-                res[index] += j
-                if re.search(pattern, j):
-                    res.append("")
-                    index += 1
-        return res
+        # l = self.__connect__(self.text)
+        # res = [""]
+        # index = 0
+        # pattern = r'[。？！；……~.?;!]'
+        # for i in l:
+        #     for j in i:
+        #         res[index] += j
+        #         if re.search(pattern, j):
+        #             res.append("")
+        #             res[index] = res[index].replace("{{spend_split}}", "...")
+        #             index += 1
+        # return res
+        return self.__connect__(self.text)
 
     def __cut__(self, para):
-        pattern = ['([。！？\?])([^”\'])', '(\.{6})([^”\'])', '(\…{2})([^”\'])', '([。！？\?][”\'])([^，。！？\?])']
+        pattern = [r'([。！？\?])([^”\'])', r'(\.{6})([^”\'])', r'(\…{2})([^”\'])', r'([。！？\?][”\'])([^，。！？\?])']
         for i in pattern:
             para = re.sub(i, r"\1\n\2", para)
         para = para.rstrip()
         return para.split("\n")
 
     def __connect__(self, paragraph):
-        sentence_before = []
-        sentence_after = []
+        paragraph = paragraph.replace("“", "\"")
+        paragraph = paragraph.replace("”", "\"")
+        sentences = self.__cut__(paragraph)
+        # for each_para in paragraph:
+        #     sentence_before.append(self.__cut__(each_para))
 
-        for each_para in paragraph:
-            sentence_before.append(self.__cut__(each_para))
+        result_list = []
 
-        for each in sentence_before:
-            combined_sentences = []
-            current_sentence = ""
-            quote_open = False  # 追踪是否在英文引号内
+        for sentence in sentences:
+            sslit = sentence.split("\"")
+            for i in sslit:
+                if i.strip() == "":
+                    continue
+                result_list.append(i.replace("{{spend_split}}", "..."))
 
-            for sentence in each:
-                # 检查是否有未闭合的英文引号
-                if sentence.count("'") % 2 != 0 or sentence.count('"') % 2 != 0:
-                    quote_open = not quote_open
-
-                # 如果遇到冒号且当前不在引号内，则开始新的一句话
-                if "：“" in sentence and not quote_open:
-                    if current_sentence:  # 添加前一个句子
-                        combined_sentences.append(current_sentence)
-                        current_sentence = ""
-                    # 添加当前句子但去除冒号后的内容，这部分内容将在下一次迭代中处理
-                    current_sentence += sentence.split("：“")[0] + "：“"
-                else:
-                    current_sentence += sentence
-
-                # 当句子结束且不在引号内时，添加到结果列表
-                if (not quote_open and any(char in sentence for char in '。！？\?.')) or sentence.endswith(
-                        '"') or sentence.endswith("'"):
-                    if current_sentence:
-                        combined_sentences.append(current_sentence)
-                        current_sentence = ""
-
-            # 确保最后的句子也被加入（如果存在的话）
-            if current_sentence:
-                combined_sentences.append(current_sentence)
-
-            sentence_after.append(combined_sentences)
-
-        return sentence_after
+        return result_list
 
 from starlette.responses import StreamingResponse
 
@@ -103,7 +82,6 @@ async def voice(cfg: TTSConfig):
     text = cfg.text.strip("\n")
 
     if (text[0] not in web_splits and len(get_first(text)) < 4): text = "。" + text if text_language != "en" else "." + text
-    if text[0] in web_splits: text = text[1:]
 
     if (cfg.split_sentence == 1):
         text = cut1(text)

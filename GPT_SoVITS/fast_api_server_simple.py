@@ -102,7 +102,6 @@ async def voice(cfg: TTSConfig):
     text = cfg.text.strip("\n")
 
     if (text[0] not in web_splits and len(get_first(text)) < 4): text = "。" + text if text_language != "en" else "." + text
-    if text[0] in web_splits: text = text[1:]
 
     if (cfg.split_sentence == 1):
         text = cut1(text)
