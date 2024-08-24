@@ -197,5 +197,10 @@ def g2p(norm_text, with_prosody=True):
 
 
 if __name__ == "__main__":
-    phones = g2p("こんにちは, hello, AKITOです,よろしくお願いしますね！")
+    phones = g2p("この英語の文の翻訳を手伝ってください。Hello Small Day お願いします。")
+    p=""
+    for i in phones:
+        p+=i
+
     print(phones)
+    print(p)

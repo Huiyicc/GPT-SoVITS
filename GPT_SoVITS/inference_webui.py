@@ -32,8 +32,8 @@ for i in range(2):
     if os.path.exists(pretrained_sovits_name[i]):
         _[-1].append(pretrained_sovits_name[i])
 pretrained_gpt_name,pretrained_sovits_name = _
-    
-        
+
+
 
 if os.path.exists(f"./weight.json"):
     pass
@@ -388,9 +388,59 @@ def merge_short_text_in_array(texts, threshold):
 
 ##ref_wav_path+prompt_text+prompt_language+text(单个)+text_language+top_k+top_p+temperature
 # cache_tokens={}#暂未实现清理机制
+from FlagEmbedding import BGEM3FlagModel
+import faiss
+
+embedding_model = BGEM3FlagModel('/root/autodl-tmp/model/bge-m3',
+                       use_fp16=True, device="cuda:1")
+faiss_index = None
+embedding_text_info_list = []
+embedding_text_list = []
+def gen_and_search(input_text, k=5):
+    global faiss_index
+    input_embedding = embedding_model.encode([input_text],
+                                   batch_size=12,
+                                   max_length=4096)['dense_vecs']
+    distances, indices = faiss_index.search(input_embedding, k)
+    return distances, indices
+
+
+def search_obj(input_text, num=5):
+    distances, indices = gen_and_search(input_text, num)
+    res_list = []
+    for idx_i in indices[0]:
+        res_list.append(embedding_text_info_list[idx_i])
+    return res_list
+
 cache= {}
 def get_tts_wav(ref_wav_path, prompt_text, prompt_language, text, text_language, how_to_cut=i18n("不切"), top_k=20, top_p=0.6, temperature=0.6, ref_free = False,speed=1,if_freeze=False,inp_refs=123):
-    global cache
+    global cache,faiss_index,embedding_model,embedding_text_info_list,embedding_text_list
+    if len(embedding_text_info_list)<1:
+        idx_file =  "/root/autodl-fs/datasets/mihoyo/流萤_index.json"
+        with open(idx_file, 'r', encoding='utf-8') as f:
+            embedding_text_info_list = json.loads(f.read())
+            for obj in embedding_text_info_list:
+                embedding_text_list.append(obj['text'])
+    if faiss_index is None:
+        faiss_idx_path = "/root/autodl-fs/datasets/mihoyo/流萤_faiss.index"
+        if not os.path.exists(faiss_idx_path):
+            audio_embeddings = embedding_model.encode(embedding_text_list,
+                                            batch_size=12,
+                                            max_length=4096)['dense_vecs']
+            d = audio_embeddings.shape[1]
+            faiss_index = faiss.IndexFlatL2(d)
+            faiss_index.add(audio_embeddings)
+            faiss.write_index(faiss_index, faiss_idx_path)
+        else:
+            faiss_index = faiss.read_index(faiss_idx_path)
+    res_ref=search_obj(text)
+    if len(res_ref)>0:
+        r_path = "/root/autodl-fs/datasets/mihoyo/流萤"
+        ref_wav_path = os.path.join(r_path,res_ref[0]['name']+".wav")
+        with open(os.path.join(r_path,res_ref[0]['name']+".lab"),'r',encoding='utf-8') as f:
+            prompt_text = str(f.read())
+        prompt_language = "Chinese"
+
     if ref_wav_path:pass
     else:gr.Warning(i18n('请上传参考音频'))
     if text:pass
@@ -409,7 +459,7 @@ def get_tts_wav(ref_wav_path, prompt_text, prompt_language, text, text_language,
         print(i18n("实际输入的参考文本:"), prompt_text)
     text = text.strip("\n")
     if (text[0] not in splits and len(get_first(text)) < 4): text = "。" + text if text_language != "en" else "." + text
-    
+
     print(i18n("实际输入的目标文本:"), text)
     zero_wav = np.zeros(
         int(hps.data.sampling_rate * 0.3),
@@ -517,7 +567,7 @@ def get_tts_wav(ref_wav_path, prompt_text, prompt_language, text, text_language,
         t4 = ttime()
         t.extend([t2 - t1,t3 - t2, t4 - t3])
         t1 = ttime()
-    print("%.3f\t%.3f\t%.3f\t%.3f" % 
+    print("%.3f\t%.3f\t%.3f\t%.3f" %
            (t[0], sum(t[1::3]), sum(t[2::3]), sum(t[3::3]))
            )
     yield hps.data.sampling_rate, (np.concatenate(audio_opt, 0) * 32768).astype(
@@ -719,7 +769,7 @@ with gr.Blocks(title="GPT-SoVITS WebUI") as app:
                 gr.Markdown(html_center(i18n("GPT采样参数(无参考文本时不要太低。不懂就用默认)：")))
                 top_k = gr.Slider(minimum=1,maximum=100,step=1,label=i18n("top_k"),value=15,interactive=True, scale=1)
                 top_p = gr.Slider(minimum=0,maximum=1,step=0.05,label=i18n("top_p"),value=1,interactive=True, scale=1)
-                temperature = gr.Slider(minimum=0,maximum=1,step=0.05,label=i18n("temperature"),value=1,interactive=True,  scale=1) 
+                temperature = gr.Slider(minimum=0,maximum=1,step=0.05,label=i18n("temperature"),value=1,interactive=True,  scale=1)
             # with gr.Column():
             #     gr.Markdown(value=i18n("手工调整音素。当音素框不为空时使用手工音素输入推理，无视目标文本框。"))
             #     phoneme=gr.Textbox(label=i18n("音素框"), value="")

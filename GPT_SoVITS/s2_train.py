@@ -75,7 +75,7 @@ def run(rank, n_gpus, hps):
 
     dist.init_process_group(
         backend = "gloo" if os.name == "nt" or not torch.cuda.is_available() else "nccl",
-        init_method="env://",
+        init_method="env://?use_libuv=False",
         world_size=n_gpus,
         rank=rank,
     )
